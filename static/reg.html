@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>注册</title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+</head>
+
+<body>
+    <div id='app'>
+        <h3>用户注册</h3>
+        <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+            <el-form-item label="用户名" prop="username">
+                <el-input maxlength="18" v-model="ruleForm.username"></el-input>
+            </el-form-item>
+            <el-form-item label="密码" prop="pass">
+                <el-input maxlength="18" type="password" v-model="ruleForm.pass" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="确认密码" prop="checkPass">
+                <el-input maxlength="18" type="password" v-model="ruleForm.checkPass" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="submitForm('ruleForm')">提交</el-button>
+                <el-button @click="resetForm('ruleForm')">重置</el-button>
+            </el-form-item>
+        </el-form>
+    </div>
+    <script>
+    var app = new Vue({
+        el: '#app',
+        data() {
+            var validatePass = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('请输入密码'));
+                } else {
+                    if (this.ruleForm.checkPass !== '') {
+                        this.$refs.ruleForm.validateField('checkPass');
+                    }
+                    callback();
+                }
+            };
+            var validatePass2 = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('请再次输入密码'));
+                } else if (value !== this.ruleForm.pass) {
+                    callback(new Error('两次输入密码不一致!'));
+                } else {
+                    callback();
+                }
+            };
+            return {
+                ruleForm: {
+                    pass: '',
+                    checkPass: '',
+                    username: '',
+                    gropid: 2
+                },
+                rules: {
+                    pass: [
+                        { validator: validatePass, trigger: 'blur' },
+                        { required: true, message: '请输入密码', trigger: 'blur' }
+                    ],
+                    checkPass: [
+                        { validator: validatePass2, trigger: 'blur' },
+                        { required: true, message: '请再次输入密码', trigger: 'blur' }
+                    ],
+                    username: [
+                        { required: true, message: '请输入用户名,长度:18个字符内', trigger: 'blur' }
+                    ]
+                }
+            };
+        },
+        methods: {
+            submitForm(formName) {
+                var that = this;
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        reg();
+
+                    } else {
+                        console.log('error submit!!');
+                        return false;
+                    }
+                });
+            },
+            resetForm(formName) {
+                this.$refs[formName].resetFields();
+            }
+        }
+    })
+
+    function reg() {
+        axios.post('/tasks/regUser', JSON.stringify(app.ruleForm))
+            .then(function(res) {
+                console.log(res.data.code);
+                var type = res.data.code==200?'success':'error';
+               
+                app.$message({
+                    message: res.data.data,
+                    type: type
+                });
+                 if(res.data.code==200){
+                    window.location.href = window.location.origin;
+                };
+            })
+            .catch(function(error) {
+                app.$message({
+                    message: '注册失败!',
+                    type: 'error'
+                });
+            });
+    }
+    </script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</body>
+
+</html>
